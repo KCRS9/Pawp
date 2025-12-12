@@ -1,0 +1,22 @@
+pip install python-multipart
+pip install python-jose
+pip install -r .\requirements.txt
+
+python
+
+
+
+uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+
+curl.exe -X POST http://localhost:8080/users/login/ -F "username=alice" -F "password=alice" -H "Content-Type: multipart/form-data"
+
+
+python
+  import bcrypt
+  bcrypt.gensalt()
+   bcrypt.hashpw(password="alice".encode("utf-8"), salt=bcrypt.gensalt())
+
+
+
+
+

@@ -1,0 +1,10 @@
+fastapi
+pydantic
+uvicorn
+bcrypt
+python-jose
+python-multipart
+sqlmodel
+mysql-connector-python
+cryptography
+mariadb
