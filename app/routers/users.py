@@ -4,6 +4,7 @@ from app.models import UserIn, UserOut, UserDb, UserBase, UserRole
 from app.auth.auth import create_access_token, Token, verify_password, oauth2_scheme, decode_token, TokenData
 from app.database import insert_user, get_user_by_email, get_all_users
 from pydantic import BaseModel
+from typing import List
 
 router = APIRouter(
     prefix="/users",
@@ -23,21 +24,11 @@ async def create_user(userIn: UserIn):
     # Defaults
     if not userIn.role:
         userIn.role = UserRole.user
-        
-    insert_user(
-        UserDb(
-            name=userIn.name,
-            email=userIn.email,
-            password=userIn.password, 
-            role=userIn.role,
-            location=userIn.location
-        )
-    )
-
+    
+    #1. Hashing password before insert
     from app.auth.auth import get_hash_password
     hashed = get_hash_password(userIn.password)
-    
-    # Overwriting the previous insert call idea
+        
     insert_user(
         UserDb(
             name=userIn.name,
@@ -52,7 +43,6 @@ async def create_user(userIn: UserIn):
 @router.post("/login", response_model = Token, status_code = status.HTTP_200_OK)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     #1. Buscamos username y password en la petición HTTP
-    # OAuth2PasswordRequestForm always has 'username' field, even if we use email
     username: str | None = form_data.username 
     password: str | None = form_data.password
 
@@ -103,3 +93,20 @@ async def get_me(token: str = Depends(oauth2_scheme)):
             detail="User not found"
         )
     return user
+
+@router.get(
+    "/",
+    response_model=List[UserOut],
+    status_code=status.HTTP_200_OK
+)
+async def get_users(token: str = Depends(oauth2_scheme)):
+    users = get_all_users()
+    return [
+        UserOut(
+            id=u.id, 
+            name=u.name, 
+            email=u.email, 
+            location=u.location,
+            role=u.role
+        ) for u in users
+    ]
